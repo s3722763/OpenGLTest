@@ -251,7 +251,7 @@ void Engine::load_media() {
 }
 
 void Engine::draw(float delta_s) {
-	this->renderSystem.render(this->entityManager.getModelComponenets(), this->entityManager.getPositionComponents(), &this->camera, this->width, this->height);
+	this->renderSystem.render(this->entityManager.getModelComponents(), this->entityManager.getPositionComponents(), &this->camera, this->width, this->height);
 }
 
 void Engine::save() {
@@ -265,16 +265,19 @@ void Engine::save() {
 }
 
 void Engine::create_box(glm::vec3 position, glm::vec3 velocity) {
-	auto model = Entity::Loaders::load_obj("Resources/obj/cube.obj");
-	model.flags |= ModelFlags::Coloured;
-	this->renderSystem.load_model(&model);
+	auto meshes = Entity::Loaders::load_model("Resources/obj/cube.obj");
+
+	ModelComponent modelComponent{};
+	modelComponent.meshes = meshes;
+
+	this->renderSystem.load_model(&modelComponent);
 
 	MovementComponent movement{};
 	movement.velocity = velocity;
 
 	EntityCreateInfo newEntity{};
 	newEntity.name = "Box";
-	newEntity.modelComponent = model;
+	newEntity.modelComponent = modelComponent;
 	newEntity.positionComponent = position;
 	newEntity.movementComponent = movement;
 
@@ -284,22 +287,25 @@ void Engine::create_box(glm::vec3 position, glm::vec3 velocity) {
 }
 
 void Engine::create_fire_pit() {
-	auto model = Entity::Loaders::load_obj("Resources/models/firepit/firepit.obj");
-	model.flags |= ModelFlags::Textured;
+	auto meshes = Entity::Loaders::load_model("Resources/models/firepit/firepit.obj");
+	meshes[0].flags |= ModelFlags::Textured;
+
+	ModelComponent modelComponent{};
+	modelComponent.meshes = meshes;
 
 	LoadTextureInfo loadTextureInfo{};
 	loadTextureInfo.texture_file = "Resources/models/firepit/trn_Firepit_AlbedoTransparency.png";
 	loadTextureInfo.type = GL_RGB;
 	loadTextureInfo.flags = LoadTextureInfoFlags::Texture;
-	this->renderSystem.load_texture(&model, &loadTextureInfo);
+	this->renderSystem.load_texture(&meshes[0], &loadTextureInfo);
 
-	this->renderSystem.load_model(&model);
+	this->renderSystem.load_model(&modelComponent);
 
 	PositionComponent lampPosition = { 0, 0, 0 };
 
 	EntityCreateInfo newEntity{};
 	newEntity.name = "firepit";
-	newEntity.modelComponent = model;
+	newEntity.modelComponent = modelComponent;
 	newEntity.positionComponent = lampPosition;
 
 	EntityID id = this->entityManager.addEntity(&newEntity);
@@ -307,22 +313,27 @@ void Engine::create_fire_pit() {
 }
 
 void Engine::create_tree() {
-	auto model = Entity::Loaders::load_obj("Resources/models/trees/tree.obj");
-	model.flags |= ModelFlags::Textured;
+	auto meshes = Entity::Loaders::load_model("Resources/models/trees/scene.gltf");
+
+	return;
+	meshes[0].flags |= ModelFlags::Textured;
+
+	ModelComponent modelComponent{};
+	modelComponent.meshes = meshes;
 
 	LoadTextureInfo loadTextureInfo{};
 	loadTextureInfo.texture_file = "Resources/models/trees/tree_base_colour.png";
 	loadTextureInfo.type = GL_RGBA;
 	loadTextureInfo.flags = LoadTextureInfoFlags::Texture;
-	this->renderSystem.load_texture(&model, &loadTextureInfo);
+	this->renderSystem.load_texture(&meshes[0], &loadTextureInfo);
 
-	this->renderSystem.load_model(&model);
+	this->renderSystem.load_model(&modelComponent);
 
 	PositionComponent treePosition = { 3, 0, 0 };
 
 	EntityCreateInfo newEntity{};
 	newEntity.name = "bigtree";
-	newEntity.modelComponent = model;
+	newEntity.modelComponent = modelComponent;
 	newEntity.positionComponent = treePosition;
 
 	EntityID id = this->entityManager.addEntity(&newEntity);

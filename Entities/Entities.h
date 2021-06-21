@@ -26,7 +26,7 @@ public:
 
 	std::vector<EntityID>* getUsedIDs();
 	std::vector<std::string>* getNames();
-	std::vector<ModelComponent>* getModelComponenets();
+	std::vector<ModelComponent>* getModelComponents();
 	std::vector<PositionComponent>* getPositionComponents();
 	std::vector<MovementComponent>* getMovementComponents();
 };

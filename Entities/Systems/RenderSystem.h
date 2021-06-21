@@ -1,3 +1,4 @@
+#pragma once
 #include "../EntityComponents.h"
 #include <vector>
 #include "../../Utilities/Pipeline.h"
@@ -24,11 +25,14 @@ class RenderSystem {
 	Pipeline colouredPipeline;
 	Pipeline texturedPipeline;
 
+	void load_mesh(MeshComponent* modelComponent);
+	void renderMesh(glm::mat4 modelComponent, glm::mat4 projection, glm::mat4 view, MeshComponent* mesh);
+
 public:
 	void init();
 
 	void render(std::vector<ModelComponent>* modelComponents, std::vector<PositionComponent>* positionComponents, Camera* camera, int width, int height);
 	void load_model(ModelComponent* modelComponent);
-	void load_texture(ModelComponent* model, LoadTextureInfo* loadTextureInfo);
+	void load_texture(MeshComponent* model, LoadTextureInfo* loadTextureInfo);
 	void add_model(EntityID id);
 };

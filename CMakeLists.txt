@@ -16,10 +16,17 @@ include_directories(${GL_DEP_DIR}/glad/include)
 include_directories(${GL_DEP_DIR}/tinygltf)
 include_directories(${GL_DEP_DIR}/tinyobjloader)
 include_directories(${GL_DEP_DIR}/nlohmannjson/include)
+include_directories(${GL_DEP_DIR}/assimp/include)
 include_directories(${GL_DEP_DIR}/stb)
 
 link_directories(${GL_DEP_DIR}/SDL2/lib/x64)
 link_directories(${GL_DEP_DIR}/glew/lib/Release/x64)
+
+if(NDEBUG)
+	link_directories(${GL_DEP_DIR}/assimp/lib/Release)
+else()
+	link_directories(${GL_DEP_DIR}/assimp/lib/Debug)
+endif()
 
 add_subdirectory(Entities)
 add_subdirectory(Utilities)
@@ -32,7 +39,25 @@ add_executable (OpenGLTest "OpenGLTest.cpp" "Engine.cpp")
 
 target_link_libraries(OpenGLTest SDL2 SDL2main glew32 OpenGL32 Imgui Entities Utilities)
 
+if(NDEBUG)
+	target_link_libraries(OpenGLTest assimp-vc142-mt)
+else()
+	target_link_libraries(OpenGLTest assimp-vc142-mtd)
+endif()
+
 add_custom_command(TARGET OpenGLTest POST_BUILD
 				   COMMAND ${CMAKE_COMMAND} -E copy_directory
 						   ${CMAKE_SOURCE_DIR}/Resources
 						   ${CMAKE_CURRENT_BINARY_DIR}/Resources)
+
+if(NDEBUG)
+	add_custom_command(TARGET OpenGLTest POST_BUILD
+					   COMMAND ${CMAKE_COMMAND} -E copy
+							   ${GL_DEP_DIR}/assimp/bin/Release/assimp-vc142-mt.dll
+							   ${CMAKE_CURRENT_BINARY_DIR}/assimp-vc142-mt.dll)
+else()
+	add_custom_command(TARGET OpenGLTest POST_BUILD
+					  COMMAND ${CMAKE_COMMAND} -E copy
+							   ${GL_DEP_DIR}/assimp/bin/Debug/assimp-vc142-mtd.dll
+							   ${CMAKE_CURRENT_BINARY_DIR}/)
+endif()

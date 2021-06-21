@@ -38,7 +38,7 @@ std::vector<std::string>* EntityManager::getNames() {
 	return &this->entityNames;
 }
 
-std::vector<ModelComponent>* EntityManager::getModelComponenets() {
+std::vector<ModelComponent>* EntityManager::getModelComponents() {
 	return &this->models;
 }
 

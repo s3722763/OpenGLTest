@@ -2,6 +2,7 @@
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 #include <vector>
 #include <glad/gl.h>
@@ -13,7 +14,7 @@ enum ModelFlags {
 	Textured = 1 << 1
 };
 
-struct ModelComponent {
+struct MeshComponent {
 	GLuint IndexBufferObject;
 	GLuint VertexBufferObject;
 	GLuint TextureCoordBufferObject;
@@ -23,10 +24,16 @@ struct ModelComponent {
 	std::vector<glm::vec3> vertices;
 	std::vector<uint32_t> indices;
 	std::vector<glm::vec3> normals;
-	std::vector<glm::vec2> texcoords;
+	std::vector<glm::vec4> tangents;
+	std::vector<glm::vec2> texcoords0;
+	std::vector<glm::vec2> texcoords1;
 	std::vector<glm::vec3> colors;
-	glm::vec3 model_position;
+
 	uint64_t flags;
+};
+
+struct ModelComponent {
+	std::vector<MeshComponent> meshes;
 };
 
 struct MovementComponent {

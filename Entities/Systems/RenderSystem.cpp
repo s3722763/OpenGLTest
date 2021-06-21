@@ -1,4 +1,7 @@
 #include "RenderSystem.h"
+#include "RenderSystem.h"
+#include "RenderSystem.h"
+#include "RenderSystem.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
@@ -23,32 +26,44 @@ void RenderSystem::render(std::vector<ModelComponent>* modelComponents, std::vec
 	view = glm::lookAt(camera->Position, look_vector, camera->Up);
 
 	for (EntityID id : this->entities) {
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, positionComponents->at(id));
+		glm::mat4 modelTransform = glm::mat4(1.0f);
+		modelTransform = glm::translate(modelTransform, positionComponents->at(id));
 
-		if ((modelComponents->at(id).flags & ModelFlags::Coloured) != 0) {
-			this->colouredPipeline.use();
-			this->colouredPipeline.setMatrix4x4Uniform("model", model);
-			this->colouredPipeline.setMatrix4x4Uniform("projection", projection);
-			this->colouredPipeline.setMatrix4x4Uniform("view", view);
-		} else if ((modelComponents->at(id).flags & ModelFlags::Textured) != 0) {
-			this->texturedPipeline.use();
-			this->texturedPipeline.setMatrix4x4Uniform("model", model);
-			this->texturedPipeline.setMatrix4x4Uniform("projection", projection);
-			this->texturedPipeline.setMatrix4x4Uniform("view", view);
-			glBindTexture(GL_TEXTURE_2D, modelComponents->at(id).textureID);
-			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		} else {
-			std::cerr << "ID " << id << " has no pipeline set. Most likely caused by incorrect ModelFlags" << "\n";
+		for (int i = 0; i < modelComponents->at(id).meshes.size(); i++) {
+			this->renderMesh(modelTransform, projection, view, &modelComponents->at(id).meshes[i]);
 		}
-
-		glBindVertexArray(modelComponents->at(id).VAO);
-
-		glDrawElements(GL_TRIANGLES, modelComponents->at(id).indices.size(), GL_UNSIGNED_INT, NULL);
 	}
 }
 
+void RenderSystem::renderMesh(glm::mat4 modelTransform, glm::mat4 projection, glm::mat4 view, MeshComponent* mesh) {
+	if ((mesh->flags & ModelFlags::Coloured) != 0) {
+		this->colouredPipeline.use();
+		this->colouredPipeline.setMatrix4x4Uniform("model", modelTransform);
+		this->colouredPipeline.setMatrix4x4Uniform("projection", projection);
+		this->colouredPipeline.setMatrix4x4Uniform("view", view);
+	} else if ((mesh->flags & ModelFlags::Textured) != 0) {
+		this->texturedPipeline.use();
+		this->texturedPipeline.setMatrix4x4Uniform("model", modelTransform);
+		this->texturedPipeline.setMatrix4x4Uniform("projection", projection);
+		this->texturedPipeline.setMatrix4x4Uniform("view", view);
+		glBindTexture(GL_TEXTURE_2D, mesh->textureID);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	} else {
+		std::cerr << "Model has no pipeline set. Most likely caused by incorrect ModelFlags" << "\n";
+	}
+
+	glBindVertexArray(mesh->VAO);
+
+	glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, NULL);
+}
+
 void RenderSystem::load_model(ModelComponent* modelComponent) {
+	for (auto& mesh : modelComponent->meshes) {
+		this->load_mesh(&mesh);
+	}
+}
+
+void RenderSystem::load_mesh(MeshComponent* modelComponent) {
 	glGenBuffers(1, &modelComponent->VertexBufferObject);
 	glBindBuffer(GL_ARRAY_BUFFER, modelComponent->VertexBufferObject);
 	glBufferData(GL_ARRAY_BUFFER, 3 * modelComponent->vertices.size() * sizeof(GLfloat), modelComponent->vertices.data(), GL_STATIC_DRAW);
@@ -70,7 +85,7 @@ void RenderSystem::load_model(ModelComponent* modelComponent) {
 	} else if ((modelComponent->flags & ModelFlags::Textured) != 0) {
 		glGenBuffers(1, &modelComponent->TextureCoordBufferObject);
 		glBindBuffer(GL_ARRAY_BUFFER, modelComponent->TextureCoordBufferObject);
-		glBufferData(GL_ARRAY_BUFFER, 2 * modelComponent->texcoords.size() * sizeof(GLfloat), modelComponent->texcoords.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 2 * modelComponent->texcoords0.size() * sizeof(GLfloat), modelComponent->texcoords0.data(), GL_STATIC_DRAW);
 		glVertexAttribPointer(this->texturedPipeline.getVertexAttribIndex("texture_pos"), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), NULL);
 
 		glBindBuffer(GL_ARRAY_BUFFER, modelComponent->VertexBufferObject);
@@ -85,7 +100,7 @@ void RenderSystem::load_model(ModelComponent* modelComponent) {
 	}
 }
 
-void RenderSystem::load_texture(ModelComponent* model, LoadTextureInfo* loadTextureInfo) {
+void RenderSystem::load_texture(MeshComponent* model, LoadTextureInfo* loadTextureInfo) {
 	int width, height, channels;
 	unsigned char* data = stbi_load(loadTextureInfo->texture_file, &width, &height, &channels, 0);
 
