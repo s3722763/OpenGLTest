@@ -14,6 +14,8 @@
 #include <imgui.h>
 #include <backends/imgui_impl_sdl.h>
 #include <backends/imgui_impl_opengl3.h>
+#include <assimp/DefaultLogger.hpp>
+#include <assimp/Logger.hpp>
 
 const char* glsl_version = "#version 330 core";
 
@@ -60,6 +62,7 @@ void Engine::init() {
 					SDL_Quit();
 				}
 
+				Assimp::DefaultLogger::create("AssimpLog.txt", Assimp::Logger::VERBOSE);
 			}
 		}
 	}
@@ -245,9 +248,8 @@ void Engine::load_media() {
 	//auto model = Entity::Loaders::load_gltf("Resources/gltf/triangles.json").at(0);
 	//this->create_box({ 0, -1, 0 }, { 0, 0, 0 });
 
-	this->create_fire_pit();
+	//this->create_fire_pit();
 	this->create_tree();
-
 }
 
 void Engine::draw(float delta_s) {
@@ -287,17 +289,17 @@ void Engine::create_box(glm::vec3 position, glm::vec3 velocity) {
 }
 
 void Engine::create_fire_pit() {
-	auto meshes = Entity::Loaders::load_model("Resources/models/firepit/firepit.obj");
+	auto meshes = Entity::Loaders::load_model("Resources/models/firepit/untitled.gltf");
 	meshes[0].flags |= ModelFlags::Textured;
-
-	ModelComponent modelComponent{};
-	modelComponent.meshes = meshes;
 
 	LoadTextureInfo loadTextureInfo{};
 	loadTextureInfo.texture_file = "Resources/models/firepit/trn_Firepit_AlbedoTransparency.png";
 	loadTextureInfo.type = GL_RGB;
 	loadTextureInfo.flags = LoadTextureInfoFlags::Texture;
 	this->renderSystem.load_texture(&meshes[0], &loadTextureInfo);
+
+	ModelComponent modelComponent{};
+	modelComponent.meshes = meshes;
 
 	this->renderSystem.load_model(&modelComponent);
 
@@ -313,19 +315,15 @@ void Engine::create_fire_pit() {
 }
 
 void Engine::create_tree() {
-	auto meshes = Entity::Loaders::load_model("Resources/models/trees/scene.gltf");
-
-	return;
-	meshes[0].flags |= ModelFlags::Textured;
-
-	ModelComponent modelComponent{};
-	modelComponent.meshes = meshes;
-
+	auto meshes = Entity::Loaders::load_model("Resources/models/trees/Forest.glb");
 	LoadTextureInfo loadTextureInfo{};
-	loadTextureInfo.texture_file = "Resources/models/trees/tree_base_colour.png";
+	loadTextureInfo.texture_file = "Resources/models/trees/PUSHILIN_forest.png";
 	loadTextureInfo.type = GL_RGBA;
 	loadTextureInfo.flags = LoadTextureInfoFlags::Texture;
 	this->renderSystem.load_texture(&meshes[0], &loadTextureInfo);
+
+	ModelComponent modelComponent{};
+	modelComponent.meshes = meshes;
 
 	this->renderSystem.load_model(&modelComponent);
 

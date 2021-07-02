@@ -1,4 +1,5 @@
 #include "Pipeline.h"
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -33,6 +34,18 @@ void Pipeline::init(const char* vertexPath, const char* fragmentPath) {
 
 void Pipeline::setMatrix4x4Uniform(const char* name, const glm::mat4& matrix) {
 	glUniformMatrix4fv(glGetUniformLocation(this->programID, name), 1, GL_FALSE, &matrix[0][0]);
+}
+
+void Pipeline::setVec4Uniform(const char* name, const glm::vec4& vector) {
+	glUniform4fv(glGetUniformLocation(this->programID, name), 1, glm::value_ptr(vector));
+}
+
+void Pipeline::setVec3Uniform(const char* name, const glm::vec3& vector) {
+	glUniform3fv(glGetUniformLocation(this->programID, name), 1, glm::value_ptr(vector));
+}
+
+void Pipeline::setFloatUniform(const char* name, const GLfloat& value) {
+	glUniform1f(glGetUniformLocation(this->programID, name), value);
 }
 
 GLuint Pipeline::getVertexAttribIndex(const char* name) {
