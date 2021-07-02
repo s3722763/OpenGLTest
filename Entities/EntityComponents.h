@@ -3,6 +3,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
 
 #include <vector>
 #include <glad/gl.h>
@@ -18,8 +19,12 @@ struct MeshComponent {
 	GLuint IndexBufferObject;
 	GLuint VertexBufferObject;
 	GLuint TextureCoordBufferObject;
+	GLuint NormalBufferObject;
+	GLuint ColorBufferObject;
 	GLuint VAO;
 	GLuint textureID;
+
+	glm::mat4x4 originalTransform;
 
 	std::vector<glm::vec3> vertices;
 	std::vector<uint32_t> indices;
@@ -27,7 +32,7 @@ struct MeshComponent {
 	std::vector<glm::vec4> tangents;
 	std::vector<glm::vec2> texcoords0;
 	std::vector<glm::vec2> texcoords1;
-	std::vector<glm::vec3> colors;
+	std::vector<glm::vec4> colors;
 
 	uint64_t flags;
 };

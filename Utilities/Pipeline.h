@@ -16,6 +16,9 @@ public:
 	void init(const char* vertexPath, const char* fragmentPath);
 
 	void setMatrix4x4Uniform(const char* name, const glm::mat4 &matrix);
+	void setVec4Uniform(const char* name, const glm::vec4& vector);
+	void setVec3Uniform(const char* name, const glm::vec3& vector);
+	void setFloatUniform(const char* name, const GLfloat& value);
 
 	GLuint getVertexAttribIndex(const char* name);
 

@@ -10,13 +10,14 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/matrix4x4.h>
 
 namespace Entity::Loaders {
 	//std::vector<ModelComponent> load_gltf(const char* file);
 	//ModelComponent load_obj(const char* file);
 	std::vector<MeshComponent> load_model(const char* file);
-	void processNode(aiNode* node, const aiScene* scene, std::vector<MeshComponent>* meshes);
-	void processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshComponent>* meshes);
+	void processNode(aiNode* node, const aiScene* scene, std::vector<MeshComponent>* meshes, aiMatrix4x4 parentMatrix);
+	void processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshComponent>* meshes, aiMatrix4x4 parentMatrix);
 
 	template<typename T>
 	void load_gltf_data(size_t accessorIndex, tinygltf::Model* model, std::vector<T>* result) {

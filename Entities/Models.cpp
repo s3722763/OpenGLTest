@@ -19,7 +19,8 @@ tinygltf::TinyGLTF loader;
 
 std::vector<MeshComponent> Entity::Loaders::load_model(const char* file) {
 	Assimp::Importer importer;
-	const auto* scene = importer.ReadFile(file, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
+
+	const auto* scene = importer.ReadFile(file, aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_FlipUVs);
 
 	if (!scene || ((scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) != 0) || !scene->mRootNode) {
 		std::cout << "ERROR: Loading file " << file << " - " << importer.GetErrorString() << "\n";
@@ -27,34 +28,45 @@ std::vector<MeshComponent> Entity::Loaders::load_model(const char* file) {
 	}
 
 	std::vector<MeshComponent> meshes;
-	Entity::Loaders::processNode(scene->mRootNode, scene, &meshes);
+	aiMatrix4x4 identity = aiMatrix4x4{};
+	Entity::Loaders::processNode(scene->mRootNode, scene, &meshes, identity);
 
 	return meshes;
 }
 
-void Entity::Loaders::processNode(aiNode* node, const aiScene* scene, std::vector<MeshComponent >* meshes) {
+void Entity::Loaders::processNode(aiNode* node, const aiScene* scene, std::vector<MeshComponent>* meshes, aiMatrix4x4 parentMatrix) {
+	aiMatrix4x4 nodeMatrix = node->mTransformation * parentMatrix;
+	
 	for (auto i = 0; i < node->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		Entity::Loaders::processMesh(mesh, scene, meshes);
+		Entity::Loaders::processMesh(mesh, scene, meshes, nodeMatrix);
 	}
 
 	for (auto i = 0; i < node->mNumChildren; i++) {
-		Entity::Loaders::processNode(node->mChildren[i], scene, meshes);
+		Entity::Loaders::processNode(node->mChildren[i], scene, meshes, nodeMatrix);
 	}
 }
 
-void Entity::Loaders::processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshComponent>* meshes) {
+void Entity::Loaders::processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshComponent>* meshes, aiMatrix4x4 parentMatrix) {
 	MeshComponent engineMesh;
 	engineMesh.vertices.resize(mesh->mNumVertices);
 	engineMesh.normals.resize(mesh->mNumVertices);
 	engineMesh.tangents.resize(mesh->mNumVertices);
 	engineMesh.texcoords0.resize(mesh->mNumVertices);
 	engineMesh.texcoords1.resize(mesh->mNumVertices);
+	engineMesh.colors.resize(mesh->mNumVertices);
 
 	for (auto i = 0; i < mesh->mNumVertices; i++) {
 		engineMesh.vertices[i] = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
 		engineMesh.normals[i] = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
-		engineMesh.texcoords0[i] = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
+
+		if (mesh->mTextureCoords[0] != nullptr) {
+			engineMesh.flags |= ModelFlags::Textured;
+			engineMesh.texcoords0[i] = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
+		} else {
+			engineMesh.flags |= ModelFlags::Coloured;
+			engineMesh.colors[i] = { mesh->mColors[0][i].r,  mesh->mColors[0][i].g,  mesh->mColors[0][i].b,  mesh->mColors[0][i].a };
+		}
 	}
 
 	for (auto i = 0; i < mesh->mNumFaces; i++) {
@@ -65,6 +77,10 @@ void Entity::Loaders::processMesh(aiMesh* mesh, const aiScene* scene, std::vecto
 		}
 	}
 
+	engineMesh.originalTransform = glm::mat4x4{ parentMatrix.a1, parentMatrix.a2, parentMatrix.a3, parentMatrix.a4,
+												parentMatrix.b1, parentMatrix.b2, parentMatrix.b3, parentMatrix.b4,
+												parentMatrix.c1, parentMatrix.c2, parentMatrix.c3, parentMatrix.c3,
+												parentMatrix.d1, parentMatrix.d2, parentMatrix.d3, parentMatrix.d4 };
 	meshes->push_back(engineMesh);
 }
 

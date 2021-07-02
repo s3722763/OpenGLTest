@@ -26,8 +26,9 @@ class RenderSystem {
 	Pipeline texturedPipeline;
 
 	void load_mesh(MeshComponent* modelComponent);
-	void renderMesh(glm::mat4 modelComponent, glm::mat4 projection, glm::mat4 view, MeshComponent* mesh);
+	void renderMesh(glm::mat4 modelComponent, glm::mat4 viewProj, MeshComponent* mesh, Camera* camera);
 
+	void checkError();
 public:
 	void init();
 
