@@ -46,4 +46,9 @@ struct MovementComponent {
 	glm::vec3 acceleration;
 };
 
+struct LightComponent {
+	glm::vec4 color;
+	glm::vec4 position;
+};
+
 typedef glm::vec3 PositionComponent;

@@ -34,6 +34,7 @@ private:
 	void create_box(glm::vec3 position, glm::vec3 velocity);
 	void create_fire_pit();
 	void create_tree();
+	void create_light();
 
 	int width = 1280;
 	int height = 720;

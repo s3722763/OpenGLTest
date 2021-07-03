@@ -8,13 +8,22 @@ in vec3 vPos;
 
 out vec4 fragment;
 
-struct Light {
+/*struct Light {
     vec4 position;
     vec4 color;
 };
 
 uniform uint uLightCount;
-uniform Light uLights[MAXLIGHTS];
+uniform Light uLights[MAXLIGHTS];*/
+
+struct Light {
+    vec4 color;
+    vec4 position;
+};
+
+layout (std140) uniform Lights {
+    Light light[10];
+} lights;
 
 uniform vec4 eyePosition;
 
@@ -29,9 +38,10 @@ void main() {
     vec3 color = texture(textureSampler, out_texture_pos).rgb;
     
     vec3 norm = normalize(vNormal);
-    vec3 lightDir = normalize(uLights[0].position.xyz - vPos);
+    
+    vec3 lightDir = normalize(lights.light[0].position.xyz - vPos);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * uLights[0].color.rgb;
+    vec3 diffuse = diff * lights.light[0].color.rgb;
 
     vec3 result = (AMBIENT + diffuse) * color;
     fragment = vec4(result, 1.0);
