@@ -250,10 +250,11 @@ void Engine::load_media() {
 
 	//this->create_fire_pit();
 	this->create_tree();
+	this->create_light();
 }
 
 void Engine::draw(float delta_s) {
-	this->renderSystem.render(this->entityManager.getModelComponents(), this->entityManager.getPositionComponents(), &this->camera, this->width, this->height);
+	this->renderSystem.render(this->entityManager.getModelComponents(), this->entityManager.getPositionComponents(), this->entityManager.getLightComponents(), &this->camera, this->width, this->height);
 }
 
 void Engine::save() {
@@ -284,7 +285,7 @@ void Engine::create_box(glm::vec3 position, glm::vec3 velocity) {
 	newEntity.movementComponent = movement;
 
 	EntityID id = this->entityManager.addEntity(&newEntity);
-	this->renderSystem.add_model(id);
+	this->renderSystem.add_model(id, 0);
 	this->movementSystem.add_entity(id);
 }
 
@@ -311,7 +312,7 @@ void Engine::create_fire_pit() {
 	newEntity.positionComponent = lampPosition;
 
 	EntityID id = this->entityManager.addEntity(&newEntity);
-	this->renderSystem.add_model(id);
+	this->renderSystem.add_model(id, 0);
 }
 
 void Engine::create_tree() {
@@ -335,7 +336,29 @@ void Engine::create_tree() {
 	newEntity.positionComponent = treePosition;
 
 	EntityID id = this->entityManager.addEntity(&newEntity);
-	this->renderSystem.add_model(id);
+	this->renderSystem.add_model(id, 0);
+}
+
+void Engine::create_light() {
+	EntityCreateInfo info{};
+	info.name = "Light";
+	info.positionComponent = { 10, 3, 0 };
+	info.flags |= EntityCreateFlags::Light;
+
+	LightComponent lightComponent;
+	lightComponent.color = { 1.0, 1.0, 1.0, 1.0 };
+	lightComponent.position = glm::vec4(info.positionComponent, 1.0);
+
+	MovementComponent movementComponent;
+	movementComponent.acceleration = { 0, 0, 0 };
+	movementComponent.velocity = { -1, 0, 0 };
+
+	info.lightComponent = lightComponent;
+	info.movementComponent = movementComponent;
+
+	EntityID id = this->entityManager.addEntity(&info);
+	this->renderSystem.add_model(id, info.flags);
+	this->movementSystem.add_entity(id);
 }
 
 void Engine::deinit() {

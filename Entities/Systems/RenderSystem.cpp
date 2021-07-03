@@ -6,13 +6,18 @@
 #include <iostream>
 
 #include "stb_image.h"
+#include "../Entities.h"
 
 void RenderSystem::init() {
 	this->colouredPipeline.init("Resources/shaders/coloured.vert", "Resources/shaders/coloured.frag");
 	this->texturedPipeline.init("Resources/shaders/textured.vert", "Resources/shaders/textured.frag");
+
+	lightingSystem.setupPipelineForLighting(&this->colouredPipeline);
+	lightingSystem.setupPipelineForLighting(&this->texturedPipeline);
 }
 
-void RenderSystem::render(std::vector<ModelComponent>* modelComponents, std::vector<PositionComponent>* positionComponents, Camera* camera, int width, int height) {
+void RenderSystem::render(std::vector<ModelComponent>* modelComponents, std::vector<PositionComponent>* positionComponents, std::vector<LightComponent>* lightComponents,
+		Camera* camera, int width, int height) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	glm::mat4 view = glm::mat4(1.0f);
@@ -22,6 +27,8 @@ void RenderSystem::render(std::vector<ModelComponent>* modelComponents, std::vec
 
 	projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
 	view = glm::lookAt(camera->Position, look_vector, camera->Up);
+
+	this->lightingSystem.use(lightComponents, positionComponents);
 
 	glm::mat4 viewProj = projection * view;
 
@@ -42,8 +49,8 @@ void RenderSystem::renderMesh(glm::mat4 modelTransform, glm::mat4 viewProj, Mesh
 		this->colouredPipeline.setMatrix4x4Uniform("model", modelTransform);
 		this->colouredPipeline.setMatrix4x4Uniform("viewProj", viewProj);
 
-		this->colouredPipeline.setVec4Uniform("LightUBlock.uLights[0].position", glm::vec4{10.0, 1.0, 0.0, 1.0});
-		this->colouredPipeline.setVec4Uniform("LightUBlock.uLights[0].color", glm::vec4{ 1.0, 1.0, 1.0, 0.0 });
+		//this->colouredPipeline.setVec4Uniform("LightUBlock.uLights[0].position", glm::vec4{10.0, 1.0, 0.0, 1.0});
+		//this->colouredPipeline.setVec4Uniform("LightUBlock.uLights[0].color", glm::vec4{ 1.0, 1.0, 1.0, 0.0 });
 		this->colouredPipeline.setVec4Uniform("eyePosition", glm::vec4{ camera->Position, 1.0 });
 	} else if ((mesh->flags & ModelFlags::Textured) != 0) {
 		this->texturedPipeline.use();
@@ -51,11 +58,10 @@ void RenderSystem::renderMesh(glm::mat4 modelTransform, glm::mat4 viewProj, Mesh
 		this->texturedPipeline.setMatrix4x4Uniform("viewProj", viewProj);
 		glBindTexture(GL_TEXTURE_2D, mesh->textureID);
 
-		this->texturedPipeline.setVec4Uniform("uLights[0].position", glm::vec4{ 10.0, 1.0, 0.0, 1.0 });
-		this->texturedPipeline.setVec4Uniform("uLights[0].color", glm::vec4{ 1.0, 1.0, 1.0, 0.0 });
+		//this->texturedPipeline.setVec4Uniform("uLights[0].position", glm::vec4{ 10.0, 1.0, 0.0, 1.0 });
+		//this->texturedPipeline.setVec4Uniform("uLights[0].color", glm::vec4{ 1.0, 1.0, 1.0, 0.0 });
 		this->texturedPipeline.setVec4Uniform("eyePosition", glm::vec4{ camera->Position, 1.0 });
-		checkError();
-		int a = 0;
+		//checkError();
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	} else {
 		std::cerr << "Model has no pipeline set. Most likely caused by incorrect ModelFlags" << "\n";
@@ -116,9 +122,9 @@ void RenderSystem::load_mesh(MeshComponent* modelComponent) {
 		glGenBuffers(1, &modelComponent->NormalBufferObject);
 		glBindBuffer(GL_ARRAY_BUFFER, modelComponent->NormalBufferObject);
 		glBufferData(GL_ARRAY_BUFFER, 3 * modelComponent->normals.size() * sizeof(GLfloat), modelComponent->normals.data(), GL_STATIC_DRAW);
-		//checkError();
-		//assert(normal_location != UINT32_MAX);
 		glVertexAttribPointer(this->texturedPipeline.getVertexAttribIndex("normal"), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), NULL);
+
+		this->lightingSystem.addToVAO();
 
 		glBindBuffer(GL_ARRAY_BUFFER, modelComponent->VertexBufferObject);
 		glVertexAttribPointer(this->texturedPipeline.getVertexAttribIndex("position"), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), NULL);
@@ -177,6 +183,10 @@ void RenderSystem::checkError() {
 	}
 }
 
-void RenderSystem::add_model(EntityID id) {
+void RenderSystem::add_model(EntityID id, uint64_t entityFlags) {
 	this->entities.push_back(id);
+
+	if ((entityFlags & EntityCreateFlags::Light) != 0) {
+		this->lightingSystem.addEntity(id);
+	}
 }

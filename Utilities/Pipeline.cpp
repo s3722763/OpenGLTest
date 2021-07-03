@@ -1,4 +1,5 @@
 #include "Pipeline.h"
+#include "Pipeline.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <fstream>
@@ -46,6 +47,11 @@ void Pipeline::setVec3Uniform(const char* name, const glm::vec3& vector) {
 
 void Pipeline::setFloatUniform(const char* name, const GLfloat& value) {
 	glUniform1f(glGetUniformLocation(this->programID, name), value);
+}
+
+void Pipeline::bindUniformBlock(const char* name, GLuint binding) {
+	GLuint index = glGetUniformBlockIndex(this->programID, name);
+	glUniformBlockBinding(this->programID, index, binding);
 }
 
 GLuint Pipeline::getVertexAttribIndex(const char* name) {

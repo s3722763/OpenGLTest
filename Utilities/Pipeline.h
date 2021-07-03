@@ -21,6 +21,7 @@ public:
 	void setFloatUniform(const char* name, const GLfloat& value);
 
 	GLuint getVertexAttribIndex(const char* name);
+	void bindUniformBlock(const char* name, GLuint point);
 
 	void use();
 	void destroy();

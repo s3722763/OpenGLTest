@@ -3,6 +3,7 @@
 #include <vector>
 #include "../../Utilities/Pipeline.h"
 #include "../../Utilities/Camera.h"
+#include "RenderSystems/LightingSystem.h"
 
 enum LoadTextureInfoFlags {
 	Texture = 1 << 0,
@@ -22,6 +23,8 @@ struct LoadTextureInfo {
 class RenderSystem {
 	std::vector<EntityID> entities;
 
+	LightingSystem lightingSystem;
+
 	Pipeline colouredPipeline;
 	Pipeline texturedPipeline;
 
@@ -32,8 +35,8 @@ class RenderSystem {
 public:
 	void init();
 
-	void render(std::vector<ModelComponent>* modelComponents, std::vector<PositionComponent>* positionComponents, Camera* camera, int width, int height);
+	void render(std::vector<ModelComponent>* modelComponents, std::vector<PositionComponent>* positionComponents, std::vector<LightComponent>* lightComponents, Camera* camera, int width, int height);
 	void load_model(ModelComponent* modelComponent);
 	void load_texture(MeshComponent* model, LoadTextureInfo* loadTextureInfo);
-	void add_model(EntityID id);
+	void add_model(EntityID id, uint64_t entityFlags);
 };

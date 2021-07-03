@@ -5,11 +5,18 @@
 #include <string>
 #include <json.hpp>
 
+enum EntityCreateFlags {
+	Light = 1 << 0
+};
+
 struct EntityCreateInfo {
 	std::string name;
+	uint64_t flags;
+
 	PositionComponent positionComponent;
 	ModelComponent modelComponent;
 	MovementComponent movementComponent;
+	LightComponent lightComponent;
 };
 
 class EntityManager {
@@ -18,6 +25,7 @@ class EntityManager {
 	std::vector<PositionComponent> positions;
 	std::vector<ModelComponent> models;
 	std::vector<MovementComponent> movements;
+	std::vector<LightComponent> lightComponents;
 
 public:
 	EntityID addEntity(EntityCreateInfo* createInfo);
@@ -29,4 +37,5 @@ public:
 	std::vector<ModelComponent>* getModelComponents();
 	std::vector<PositionComponent>* getPositionComponents();
 	std::vector<MovementComponent>* getMovementComponents();
+	std::vector<LightComponent>* getLightComponents();
 };

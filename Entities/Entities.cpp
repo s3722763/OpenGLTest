@@ -8,6 +8,7 @@ EntityID EntityManager::addEntity(EntityCreateInfo* createInfo) {
 	this->positions.push_back(createInfo->positionComponent);
 	this->models.push_back(createInfo->modelComponent);
 	this->movements.push_back(createInfo->movementComponent);
+	this->lightComponents.push_back(createInfo->lightComponent);
 
 	return id;
 }
@@ -48,4 +49,8 @@ std::vector<PositionComponent>* EntityManager::getPositionComponents() {
 
 std::vector<MovementComponent>* EntityManager::getMovementComponents() {
 	return &this->movements;
+}
+
+std::vector<LightComponent>* EntityManager::getLightComponents() {
+	return &this->lightComponents;
 }
